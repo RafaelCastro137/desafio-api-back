@@ -1,6 +1,6 @@
 # Desafio API - Backend Spring Boot
 
-Este projeto é a API backend do desafio técnico Full Stack. Foi desenvolvido com Spring Boot e expõe endpoints REST para cadastro, listagem, edição e exclusão de usuários. A API é consumida por um frontend Angular disponível em:  
+Este projeto é a API backend do desafio técnico Full Stack. Foi desenvolvido com Spring Boot e expõe endpoints REST para cadastro, listagem, edição e exclusão de usuários. A API é consumida por um frontend Angular disponível em: 
 ➡️ [`desafio-api-front`](https://github.com/RafaelCastro137/desafio-api-front)
 
 ## 🚀 Tecnologias Utilizadas
