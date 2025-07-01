@@ -1,5 +1,7 @@
 package br.com.projeto.api.controle;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -8,7 +10,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 
 import br.com.projeto.api.modelo.Usuario;
@@ -17,96 +21,123 @@ import br.com.projeto.api.modelo.Usuario;
 @AutoConfigureMockMvc
 public class ControleTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Test
-    void deveCadastrarUsuarioComSucesso() throws Exception {
-        String usuarioValido = """
-                {
-                  "nome": "Rafael",
-                  "email": "rafael@email.com",
-                  "senha": "senhaSegura123"
-                }
-                """;
+        @Test
+        void deveCadastrarUsuarioComSucesso() throws Exception {
+                String usuarioValido = """
+                                {
+                                  "nome": "Rafael",
+                                  "email": "rafael@email.com",
+                                  "senha": "senhaSegura123"
+                                }
+                                """;
 
-        mockMvc.perform(post("/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(usuarioValido))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("rafael@email.com"))
-                .andDo(print());
-    }
+                mockMvc.perform(post("/")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(usuarioValido))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.email").value("rafael@email.com"))
+                                .andDo(print());
+        }
 
-@Test
-void deveEditarUsuarioComSucesso() throws Exception {
-    String usuarioInicial = """
-            {
-              "nome": "Usuario Original",
-              "email": "original@email.com",
-              "senha": "senhaOriginal"
-            }
-            """;
+        @Test
+        void deveEditarUsuarioComSucesso() throws Exception {
+                String usuarioInicial = """
+                                {
+                                  "nome": "Usuario Original",
+                                  "email": "original@email.com",
+                                  "senha": "senhaOriginal"
+                                }
+                                """;
 
-    String responseContent = mockMvc.perform(post("/")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(usuarioInicial))
-            .andExpect(status().isOk())
-            .andReturn().getResponse().getContentAsString();
+                String responseContent = mockMvc.perform(put("/")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(usuarioInicial))
+                                .andExpect(status().isOk())
+                                .andReturn().getResponse().getContentAsString();
 
-    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-    Usuario usuarioCriado = mapper.readValue(responseContent, Usuario.class);
-    Long idDoUsuarioCriado = usuarioCriado.getId();
-    String usuarioValidoParaEdicao = String.format("""
-            {
-              "id": %d,
-              "nome": "Rafael",
-              "email": "rafael@email.com",
-              "senha": "senhaSegura123"
-            }
-            """, idDoUsuarioCriado);
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                Usuario usuarioCriado = mapper.readValue(responseContent, Usuario.class);
+                Long idDoUsuarioCriado = usuarioCriado.getId();
+                String usuarioValidoParaEdicao = String.format("""
+                                {
+                                  "id": %d,
+                                  "nome": "Rafael",
+                                  "email": "rafael@email.com",
+                                  "senha": "senhaSegura123"
+                                }
+                                """, idDoUsuarioCriado);
 
-    mockMvc.perform(put("/")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(usuarioValidoParaEdicao))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.email").value("rafael@email.com"))
-            .andDo(print());
-}
+                mockMvc.perform(put("/")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(usuarioValidoParaEdicao))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.email").value("rafael@email.com"))
+                                .andDo(print());
+        }
 
-    @Test
-    void deveRetornarErroQuandoEmailInvalidoNaAtualizacao() throws Exception {
-        String usuarioParaAtualizarInvalido = """
-                {
-                "id": 1,
-                "nome": "T",
-                "email": "emailinvalido", 
-                "senha": "123"
-                }
-                """;
+        @Test
+        void deveRetornarErroQuandoEmailInvalidoNaAtualizacao() throws Exception {
+                String usuarioParaAtualizarInvalido = """
+                                {
+                                "id": 1,
+                                "nome": "T",
+                                "email": "emailinvalido",
+                                "senha": "123"
+                                }
+                                """;
 
-        mockMvc.perform(put("/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(usuarioParaAtualizarInvalido))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string(""))
-                .andDo(print());
-    }
+                mockMvc.perform(put("/")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(usuarioParaAtualizarInvalido))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(content().string(""))
+                                .andDo(print());
+        }
 
-    @Test
-    void deveRetornarUsuariosNoSelect() throws Exception {
-        mockMvc.perform(get("/"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andDo(print());
-    }
+        @Test
+        void deveRetornarUsuariosNoSelect() throws Exception {
+                mockMvc.perform(get("/"))
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                .andDo(print());
+        }
 
-    @Test
-    void deveRemoverUsuario() throws Exception {
-        long idParaRemover = 1L;
+        @Test
+        void deveRemoverUsuario() throws Exception {
+                long idParaRemover = 1L;
 
-        mockMvc.perform(delete("/" + idParaRemover))
-                .andExpect(status().isOk())
-                .andDo(print());
-    }
+                mockMvc.perform(delete("/" + idParaRemover))
+                                .andExpect(status().isOk())
+                                .andDo(print());
+        }
+
+        @Test
+        void deveCairNoCatchDeConstraintViolationExceptionComErroDeServidor() {
+                Controle controle = new Controle();
+                Usuario usuarioInvalido = new Usuario();
+                usuarioInvalido.setNome("Teste");
+                usuarioInvalido.setEmail("email-invalido");
+                usuarioInvalido.setSenha("123456");
+                ResponseEntity<?> resposta = controle.cadastrar(usuarioInvalido);
+
+                assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, resposta.getStatusCode());
+                assertFalse(resposta.getBody().toString().contains("Email no formato inválido"));
+        }
+
+        @Test
+        void deveCairNoCatchDeConstraintViolationExceptionComEmailInvalido() {
+                Controle controle = new Controle();
+                Usuario usuarioInvalido = new Usuario();
+                usuarioInvalido.setNome("Teste");
+                usuarioInvalido.setEmail("email-invalido");
+                usuarioInvalido.setSenha("123456");
+                ResponseEntity<?> resposta = controle.editar(usuarioInvalido);
+
+                assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, resposta.getStatusCode());
+                assertFalse(resposta.getBody().toString().contains("Email no formato inválido"));
+        }
+
 }
